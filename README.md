@@ -55,6 +55,19 @@ print(peak.fwhm)
 
 ## Development
 
+### Version tracking
+
+The current package version is `0.5.0`. See [CHANGELOG.md](CHANGELOG.md) for release
+history and changes planned for the next release.
+
+Commit meaningful changes as you work. Before a release, update the version in
+`pyproject.toml`, move the relevant changelog entries from `Unreleased` into a dated
+release section, and run the tests and package build below. Commit those changes,
+then create and push an annotated tag matching the version (for example, `v0.5.0`).
+Use patch versions for bug fixes and minor versions for new features; document any
+breaking changes explicitly while the package is below version 1.0. Reserve 1.0.0
+for the first stable public API.
+
 ```sh
 python -m pytest
 python -m build

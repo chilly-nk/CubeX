@@ -1,0 +1,26 @@
+# Changelog
+
+Record user-visible changes here before each release. Package versions are set in
+`pyproject.toml`; each release has a matching annotated Git tag (`vX.Y.Z`).
+
+## Unreleased
+
+## 0.5.0 - 2026-11-16
+
+Initial tagged release of the reusable CubeX Python package.
+
+### Added
+
+- Hyperspectral cube loading, binning, RGB visualization, and annotations.
+- Spectral peak full width at half maximum (FWHM) analysis.
+- Thermal calibration, video decoding, and frame timing helpers.
+- Package installation metadata, API documentation, and automated tests and builds.
+
+### Fixed
+
+- Descending-side interpolation for FWHM calculations extracted from the notebook.
+- Explicit imports, optional cube state initialization, and input validation.
+
+### Repository
+
+- Dataset-specific analysis notebooks remain local and are ignored by Git.
