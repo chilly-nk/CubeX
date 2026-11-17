@@ -94,22 +94,32 @@ class TMCal:
             Pixel coordinates specifying the locations from which calibration
             values are extracted. Each coordinate is given as (x, y, w, h).
         temps : array-like
-            Known reference temperatures corresponding to the calibration
-            measurements.
+            Known reference temperatures, either shape (n_rois,) for fixed
+            temperatures shared by all frames, or (n_frames, n_rois) for
+            temperatures specific to each frame. Frames are the last axis
+            of data.
         """
         from scipy.stats import linregress
         self.data = data
         self.coords = coords
-        self.temps = temps
-        if len(self.coords) != len(self.temps):
-            raise ValueError('Number of coordinates must match the number of temperatures.')
+        self.temps = np.asarray(temps, dtype=float)
+        if self.temps.ndim == 1:
+            if self.temps.shape != (len(coords),):
+                raise ValueError('Number of coordinates must match the number of temperatures.')
+            frame_temps = np.broadcast_to(self.temps, (data.shape[-1], len(coords)))
+        elif self.temps.ndim == 2:
+            if self.temps.shape != (data.shape[-1], len(coords)):
+                raise ValueError('2D temperatures must have shape (n_frames, n_rois).')
+            frame_temps = self.temps
+        else:
+            raise ValueError('Temperatures must be a 1D or 2D array.')
         self.ref_pixels = []
         for i, coord in enumerate(self.coords):
             x, y, w, h = coord
             pixel = self.data[y:y + h, x:x + w, :].mean(axis=(0, 1))
             self.ref_pixels.append(pixel)
         self.ref_pixels = np.array(self.ref_pixels)
-        self.fits = [linregress(self.ref_pixels[:, i], self.temps) for i in range(data.shape[-1])]
+        self.fits = [linregress(self.ref_pixels[:, i], frame_temps[i]) for i in range(data.shape[-1])]
         self.slopes = np.array([fit.slope for fit in self.fits])
         self.intercepts = np.array([fit.intercept for fit in self.fits])
         self.rvalues = np.array([fit.rvalue for fit in self.fits])

@@ -5,6 +5,14 @@ Record user-visible changes here before each release. Package versions are set i
 
 ## Unreleased
 
+## 0.7.0 - 2026-11-17
+
+### Added
+
+- `TMCal` accepts per-frame reference temperatures with shape
+  `(n_frames, n_rois)`, while retaining fixed 1D reference temperatures.
+- Validation of temperature array dimensions and frame/ROI counts.
+
 ## 0.6.0 - 2026-11-17
 
 ### Added

@@ -48,7 +48,7 @@ print(peak.fwhm)
 - Binning averages samples and requires divisible dimensions. `Cube.bin` accepts factors relative to the current cube and tracks cumulative spectral binning. Wavelengths and supplied FWHM metadata are averaged per bin; averaged FWHM metadata is not a model of the effective binned spectral response.
 - RGB channel selectors retain NumPy indexing: `(33, 49)` selects two bands, while `slice(33, 49)` selects a range. Each channel is independently normalized; constant channels become black. Default Specim selectors require at least 200 bands; supply selectors for other sensors.
 - `FWHM` expects finite samples with increasing wavelengths and one peak crossing half maximum on both sides. The descending-side interpolation is corrected from the notebook.
-- `TMCal` fits each frame independently using reference ROIs `(x, y, width, height)` and known temperatures. `LinRegCal` accepts rows of `(x, y)` reference pairs.
+- `TMCal` fits each frame independently using reference ROIs `(x, y, width, height)` and known temperatures. Pass `temps` with shape `(n_rois,)` for fixed temperatures, or `(n_frames, n_rois)` for temperatures that vary by frame; `n_frames = data.shape[-1]`. `LinRegCal` accepts rows of `(x, y)` reference pairs.
 - `ThermalVideo` preserves the notebook's red-channel extraction from decoded `rgb24` images; this is not raw radiometric temperature decoding. It requires constant frame timing and at least two initial frames. Call `close()` when finished.
 - Timing helpers retain the notebook conventions: `frame_to_time(0, fps)` is `(0, 0)`; `frame_to_second(0, fps)` is `1 / fps` (end of exposure); `second_to_frame` returns `ceil(seconds * fps)`. They are not inverse index conversions.
 - Imports are explicit; `Cube` accepts string paths, initializes optional state, and rejects unsupported origins.
@@ -57,7 +57,7 @@ print(peak.fwhm)
 
 ### Version tracking
 
-The current package version is `0.6.0`. See [CHANGELOG.md](CHANGELOG.md) for release
+The current package version is `0.7.0`. See [CHANGELOG.md](CHANGELOG.md) for release
 history and changes planned for the next release.
 
 Commit meaningful changes as you work. Before a release, update the version in

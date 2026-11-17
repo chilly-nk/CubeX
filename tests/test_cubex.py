@@ -95,6 +95,34 @@ def test_calibrations_and_timing():
     assert second_to_frame(0.6, 2) == 2
 
 
+def test_tmcal_per_frame_temperatures():
+    data = np.array([[[0., 1., 2.], [2., 3., 4.], [4., 5., 6.]]])
+    coords = [(0, 0, 1, 1), (1, 0, 1, 1)]
+    cal = TMCal(data, coords, [[10., 14.], [20., 26.], [30., 38.]])
+    np.testing.assert_allclose(cal.slopes, [2., 3., 4.])
+    np.testing.assert_allclose(cal.intercepts, [10., 17., 22.])
+    np.testing.assert_allclose(cal.get_temp((2, 0, 1, 1)), [18., 32., 46.])
+
+
+def test_tmcal_fixed_temperatures_match_repeated_rows():
+    data = np.array([[[0., 1., 2.], [2., 3., 4.], [4., 5., 6.]]])
+    coords = [(0, 0, 1, 1), (1, 0, 1, 1)]
+    fixed = TMCal(data, coords, np.array([10., 14.]))
+    repeated = TMCal(data, coords, np.tile([10., 14.], (3, 1)))
+    np.testing.assert_allclose(fixed.slopes, repeated.slopes)
+    np.testing.assert_allclose(fixed.intercepts, repeated.intercepts)
+    np.testing.assert_allclose(fixed.get_temp((2, 0, 1, 1)), [18., 18., 18.])
+
+
+@pytest.mark.parametrize('temps', [10., [[[10., 14.]]], [10.],
+                                  np.zeros((2, 2)), np.zeros((3, 1)),
+                                  np.zeros((2, 3))])
+def test_tmcal_rejects_invalid_temperature_shapes(temps):
+    data = np.zeros((1, 2, 3))
+    with pytest.raises(ValueError, match='temperatures|Temperatures'):
+        TMCal(data, [(0, 0, 1, 1), (1, 0, 1, 1)], temps)
+
+
 def test_thermal_video_sampling(tmp_path):
     av = pytest.importorskip('av')
     path = tmp_path / 'thermal.mp4'
