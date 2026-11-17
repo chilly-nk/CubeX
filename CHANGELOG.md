@@ -5,6 +5,14 @@ Record user-visible changes here before each release. Package versions are set i
 
 ## Unreleased
 
+## 0.6.0 - 2026-11-17
+
+### Added
+
+- `thermography.HeatersLog` for reading heater status logs into temperature and
+  output arrays, elapsed timing, and a pandas DataFrame.
+- pandas as a dependency for heater log DataFrames.
+
 ## 0.5.0 - 2026-11-16
 
 Initial tagged release of the reusable CubeX Python package.

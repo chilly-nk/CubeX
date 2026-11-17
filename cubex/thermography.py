@@ -2,7 +2,83 @@
 
 import numpy as np
 
-__all__ = ['TMCal', 'LinRegCal', 'ThermalVideo', 'frame_to_time', 'frame_to_second', 'second_to_frame']
+__all__ = ['HeatersLog', 'TMCal', 'LinRegCal', 'ThermalVideo', 'frame_to_time', 'frame_to_second', 'second_to_frame']
+
+
+class HeatersLog:
+    """Read heater temperatures and output states from a status log.
+
+    Parameters
+    ----------
+    path : str or path-like
+        UTF-8 log beginning with ``Status interval = <number> <unit>``.
+
+    Attributes
+    ----------
+    heaters : list of str
+        Heater names, in their logged order.
+    set_temps : list of float
+        Constant set temperatures in heater order.
+    temps, outs : numpy.ndarray
+        Temperatures and integer output states, shaped (readings, heaters).
+    interval : float
+        Positive reading interval from the header.
+    interval_unit : str
+        Interval unit as written in the header.
+    timing : numpy.ndarray
+        Elapsed times starting at zero, expressed in ``interval_unit``.
+    data : pandas.DataFrame
+        Temperatures with heater columns and elapsed time as the index.
+    """
+
+    def __init__(self, path):
+        """Parse a log, rejecting malformed or inconsistent readings."""
+        import re
+        import pandas as pd
+
+        number = r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?'
+        header_pattern = rf'Status\s+interval\s*=\s*({number})\s+(\S+)'
+        heater_pattern = re.compile(
+            rf'(H\d+)\s*\(\s*({number})\s*\)\s*T\s*=\s*({number})\s+OUT\s*=\s*([01])'
+        )
+        self.heaters = []
+        self.set_temps = []
+        temperatures, outputs = [], []
+        with open(path, encoding='utf-8-sig') as log:
+            header = re.fullmatch(header_pattern, log.readline().strip())
+            if header is None:
+                raise ValueError('Expected first line: Status interval = <number> <unit>.')
+            self.interval = float(header[1])
+            self.interval_unit = header[2]
+            if not np.isfinite(self.interval) or self.interval <= 0:
+                raise ValueError('Status interval must be finite and positive.')
+            for line_number, line in enumerate(log, start=2):
+                line = line.strip()
+                if not line:
+                    continue
+                entries = [heater_pattern.fullmatch(part.strip()) for part in line.split('|')]
+                if any(entry is None for entry in entries):
+                    raise ValueError(f'Malformed heater reading on line {line_number}.')
+                heaters = [entry[1] for entry in entries]
+                set_temps = [float(entry[2]) for entry in entries]
+                temps = [float(entry[3]) for entry in entries]
+                if not np.all(np.isfinite(set_temps + temps)):
+                    raise ValueError(f'Non-finite temperature on line {line_number}.')
+                if not self.heaters:
+                    if len(set(heaters)) != len(heaters):
+                        raise ValueError(f'Duplicate heater names on line {line_number}.')
+                    self.heaters = heaters
+                    self.set_temps = set_temps
+                elif heaters != self.heaters or set_temps != self.set_temps:
+                    raise ValueError(f'Heaters or set temperatures changed on line {line_number}.')
+                temperatures.append(temps)
+                outputs.append([int(entry[4]) for entry in entries])
+        if not temperatures:
+            raise ValueError('Log contains no heater readings.')
+        self.temps = np.array(temperatures, dtype=float)
+        self.outs = np.array(outputs, dtype=int)
+        self.timing = np.arange(len(self.temps)) * self.interval
+        self.data = pd.DataFrame(self.temps, columns=self.heaters, index=self.timing)
 
 class TMCal:
     """Fit a temperature calibration for each image frame."""

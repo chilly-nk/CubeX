@@ -57,7 +57,7 @@ print(peak.fwhm)
 
 ### Version tracking
 
-The current package version is `0.5.0`. See [CHANGELOG.md](CHANGELOG.md) for release
+The current package version is `0.6.0`. See [CHANGELOG.md](CHANGELOG.md) for release
 history and changes planned for the next release.
 
 Commit meaningful changes as you work. Before a release, update the version in
